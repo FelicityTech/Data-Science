@@ -4,14 +4,16 @@ import numpy as np
 from rapidfuzz import process
 import joblib
 import ast
+from pathlib import Path
+
+BASE_DIR = Path(__file__).resolve().parent
 
 # Load pre-computed models
 
 
-@st.cache_data
+@st.cache_resource
 def load_models():
-    models = joblib.load('models.pkl')
-    return models
+    return joblib.load(BASE_DIR / "models.pkl")
 
 
 models = load_models()
@@ -26,8 +28,8 @@ indices = models['indices']
 
 @st.cache_data
 def load_data():
-    credits = pd.read_csv('tmdb_5000_credits.csv')
-    movies = pd.read_csv('tmdb_5000_movies.csv')
+    credits = pd.read_csv(BASE_DIR / 'tmdb_5000_credits.csv')
+    movies = pd.read_csv(BASE_DIR / 'tmdb_5000_movies.csv')
     credits_columns = credits.rename(columns={'movie_id': 'id'})
     movies_merge = movies.merge(credits_columns, on='id')
     movies_cleaned = movies_merge.drop(
