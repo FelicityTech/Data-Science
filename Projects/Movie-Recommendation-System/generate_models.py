@@ -9,7 +9,7 @@ Requirements:
 - pandas
 - numpy
 - scikit-learn
-- fuzzywuzzy
+- rapidfuzz
 - python-levenshtein
 - joblib
 
@@ -26,6 +26,7 @@ import joblib
 import ast
 import os
 
+
 def load_data():
     """Load and preprocess movie data"""
     print("Loading movie data...")
@@ -33,7 +34,7 @@ def load_data():
     movies = pd.read_csv('tmdb_5000_movies.csv')
 
     # Merge datasets
-    credits_columns = credits.rename(columns={'movie_id':'id'})
+    credits_columns = credits.rename(columns={'movie_id': 'id'})
     movies_merge = movies.merge(credits_columns, on='id')
 
     # Clean data
@@ -44,15 +45,18 @@ def load_data():
 
     # Process genres
     movies_cleaned['genres_list'] = movies_cleaned['genres'].apply(
-        lambda x: [i['name'] for i in ast.literal_eval(x)] if pd.notnull(x) else []
+        lambda x: [i['name']
+                   for i in ast.literal_eval(x)] if pd.notnull(x) else []
     )
 
     # Process keywords
     movies_cleaned['keywords_list'] = movies_cleaned['keywords'].apply(
-        lambda x: [i['name'] for i in ast.literal_eval(x)] if pd.notnull(x) else []
+        lambda x: [i['name']
+                   for i in ast.literal_eval(x)] if pd.notnull(x) else []
     )
 
     return movies_cleaned
+
 
 def create_similarity_matrices(movies_cleaned):
     """Create content-based similarity matrices"""
@@ -70,6 +74,7 @@ def create_similarity_matrices(movies_cleaned):
 
     return cos_sim, sig_sim
 
+
 def create_collaborative_matrix(movies_cleaned):
     """Create collaborative filtering similarity matrix"""
     print("Creating collaborative filtering matrix...")
@@ -84,7 +89,8 @@ def create_collaborative_matrix(movies_cleaned):
     # Create a simple user-item matrix based on movie features
     # This is a simplified approach - real collaborative filtering
     # would use actual user-movie rating data
-    feature_matrix = movies_cleaned[['vote_average', 'vote_count', 'popularity']].fillna(0)
+    feature_matrix = movies_cleaned[[
+        'vote_average', 'vote_count', 'popularity']].fillna(0)
 
     # Apply SVD
     reduced_matrix = svd.fit_transform(feature_matrix)
@@ -93,6 +99,7 @@ def create_collaborative_matrix(movies_cleaned):
     collab_sim = cosine_similarity(reduced_matrix)
 
     return collab_sim
+
 
 def create_hybrid_matrix(cos_sim, collab_sim):
     """Create hybrid similarity matrix"""
@@ -106,11 +113,14 @@ def create_hybrid_matrix(cos_sim, collab_sim):
 
     return hybrid_sim
 
+
 def create_indices(movies_cleaned):
     """Create movie title to index mapping"""
     print("Creating movie indices...")
-    indices = pd.Series(movies_cleaned.index, index=movies_cleaned['original_title']).drop_duplicates()
+    indices = pd.Series(
+        movies_cleaned.index, index=movies_cleaned['original_title']).drop_duplicates()
     return indices
+
 
 def main():
     """Main function to generate and save models"""
@@ -138,12 +148,14 @@ def main():
     }
 
     joblib.dump(models, 'models.pkl')
-    print(f"Models saved to models.pkl ({os.path.getsize('models.pkl') / (1024*1024):.2f} MB)")
+    print(
+        f"Models saved to models.pkl ({os.path.getsize('models.pkl') / (1024*1024):.2f} MB)")
 
     print("Model generation complete!")
     print("\nYou can now run:")
     print("  streamlit run app.py    # Web interface")
-    print("  python api.py          # API server")
+    print("  python fastapi_app.py          # API server")
+
 
 if __name__ == "__main__":
     main()

@@ -55,8 +55,28 @@ python generate_models.py
 streamlit run app.py
 
 # Run API (in another terminal)
-python api.py
+python fastapi_app.py
 ```
+
+## 🚀 Deployment
+
+### Streamlit Cloud
+1. Push your code to a GitHub repository
+2. Go to [share.streamlit.io](https://share.streamlit.io)
+3. Connect your GitHub account and select this repository
+4. Set the main file path to `streamlit_app.py`
+5. Click Deploy
+
+### Heroku (for API)
+1. Create a `Procfile` with:
+   ```
+   web: uvicorn api:app --host 0.0.0.0 --port $PORT
+   ```
+2. Deploy to Heroku with Python buildpack
+
+### Local Production
+- Use `uvicorn api:app --host 0.0.0.0 --port 8000` for API
+- Use `streamlit run streamlit_app.py --server.port 8501 --server.headless true` for web app
 
 ## 📖 Usage
 

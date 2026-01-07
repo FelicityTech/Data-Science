@@ -2,7 +2,7 @@ import pytest
 import pandas as pd
 import numpy as np
 import joblib
-from fuzzywuzzy import process
+from rapidfuzz import process
 import sys
 import os
 
@@ -10,6 +10,8 @@ import os
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 # Mock data for testing
+
+
 @pytest.fixture
 def mock_data():
     """Create mock movie data for testing"""
@@ -21,17 +23,21 @@ def mock_data():
     }
 
     movies_df = pd.DataFrame(movies_data)
-    movies_df['genres_list'] = movies_df['genres'].apply(lambda x: [i['name'] for i in eval(x)])
-    movies_df['keywords_list'] = movies_df['keywords'].apply(lambda x: [i['name'] for i in eval(x)])
+    movies_df['genres_list'] = movies_df['genres'].apply(
+        lambda x: [i['name'] for i in eval(x)])
+    movies_df['keywords_list'] = movies_df['keywords'].apply(
+        lambda x: [i['name'] for i in eval(x)])
 
     # Create mock similarity matrices
     n_movies = len(movies_df)
     mock_sim = np.random.rand(n_movies, n_movies)
     np.fill_diagonal(mock_sim, 1.0)  # Self-similarity should be 1
 
-    indices = pd.Series(movies_df.index, index=movies_df['original_title']).drop_duplicates()
+    indices = pd.Series(
+        movies_df.index, index=movies_df['original_title']).drop_duplicates()
 
     return movies_df, mock_sim, indices
+
 
 @pytest.fixture
 def mock_models(mock_data):
@@ -45,6 +51,7 @@ def mock_models(mock_data):
         'indices': indices
     }
 
+
 def test_indices_creation(mock_data):
     """Test that indices are created correctly"""
     movies_df, _, indices = mock_data
@@ -52,6 +59,7 @@ def test_indices_creation(mock_data):
     assert len(indices) == len(movies_df)
     assert indices['The Matrix'] == 0
     assert 'Nonexistent Movie' not in indices
+
 
 def test_fuzzy_matching(mock_data):
     """Test fuzzy matching functionality"""
@@ -70,6 +78,7 @@ def test_fuzzy_matching(mock_data):
     closest, score = process.extractOne('Incept', indices.index)
     assert closest == 'Inception'
     assert score > 80
+
 
 def test_recommendation_function(mock_data):
     """Test the give_recommendations function"""
@@ -102,6 +111,7 @@ def test_recommendation_function(mock_data):
     assert isinstance(recs, list)
     assert len(recs) == 2
 
+
 def test_similarity_matrix_properties(mock_data):
     """Test that similarity matrices have correct properties"""
     movies_df, mock_sim, indices = mock_data
@@ -118,6 +128,7 @@ def test_similarity_matrix_properties(mock_data):
     # Check values are between 0 and 1
     assert np.all((mock_sim >= 0) & (mock_sim <= 1))
 
+
 def test_genre_processing(mock_data):
     """Test genre list processing"""
     movies_df, _, _ = mock_data
@@ -128,6 +139,7 @@ def test_genre_processing(mock_data):
 
     # Check that all movies have genre lists
     assert all(isinstance(genres, list) for genres in movies_df['genres_list'])
+
 
 def test_model_persistence(mock_models, tmp_path):
     """Test saving and loading models"""
@@ -146,10 +158,12 @@ def test_model_persistence(mock_models, tmp_path):
 
     # Check that matrices have same shape
     for key in ['sig', 'cos', 'collab_sim', 'hybrid_sim']:
-        np.testing.assert_array_equal(models[key].shape, loaded_models[key].shape)
+        np.testing.assert_array_equal(
+            models[key].shape, loaded_models[key].shape)
 
     # Check that indices are identical
     pd.testing.assert_series_equal(models['indices'], loaded_models['indices'])
+
 
 if __name__ == "__main__":
     pytest.main([__file__])

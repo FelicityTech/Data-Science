@@ -16,6 +16,7 @@ try:
 except ImportError:
     client = None
 
+
 @pytest.mark.skipif(client is None, reason="API app not available")
 class TestAPI:
     """Test the FastAPI endpoints"""
@@ -162,6 +163,8 @@ class TestAPI:
         assert "access-control-allow-origin" in response.headers or response.status_code == 200
 
 # Integration tests (require running server)
+
+
 @pytest.mark.integration
 class TestAPIIntegration:
     """Integration tests that require running server"""
@@ -172,15 +175,17 @@ class TestAPIIntegration:
             response = requests.get("http://localhost:8000/", timeout=5)
             assert response.status_code == 200
         except requests.exceptions.RequestException:
-            pytest.skip("Server not running - start with 'python api.py'")
+            pytest.skip(
+                "Server not running - start with 'python fastapi_app.py'")
 
     def test_full_recommendation_flow(self):
         """Test complete recommendation flow"""
         try:
             # Test recommendation
             response = requests.get("http://localhost:8000/recommend",
-                                  params={"title": "Inception", "algorithm": "hybrid"},
-                                  timeout=10)
+                                    params={"title": "Inception",
+                                            "algorithm": "hybrid"},
+                                    timeout=10)
             assert response.status_code == 200
 
             data = response.json()
@@ -194,6 +199,7 @@ class TestAPIIntegration:
 
         except requests.exceptions.RequestException:
             pytest.skip("Server not running")
+
 
 if __name__ == "__main__":
     pytest.main([__file__, "-v"])
