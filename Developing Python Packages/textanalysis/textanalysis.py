@@ -1,4 +1,14 @@
 def count_words(filepath, words_list):
+    """
+
+    Args:
+      filepath: 
+      words_list: 
+
+    Returns:
+
+    
+    """
     # Open the text file
     with open(filepath) as file:
         text = file.read()
